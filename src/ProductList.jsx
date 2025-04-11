@@ -1,9 +1,15 @@
 import React, { useState, useEffect } from 'react';
+//import { useDispatch } from 'react-redux'; // Import useDispatch
+import { useDispatch, useSelector } from 'react-redux'; // Import useDispatch and useSelector from react-redux
+import { addItem } from './CartSlice'; // Import addItem action
 import './ProductList.css'
 import CartItem from './CartItem';
+
 function ProductList({ onHomeClick }) {
     const [showCart, setShowCart] = useState(false);
     const [showPlants, setShowPlants] = useState(false); // State to control the visibility of the About Us page
+    const [addedToCart, setAddedToCart] = useState({}); // State to track added-to-cart items
+    const dispatch = useDispatch(); // Initialize dispatch
 
     const plantsArray = [
         {
@@ -233,6 +239,18 @@ function ProductList({ onHomeClick }) {
         textDecoration: 'none',
     }
 
+    // Synchronize addedToCart with the cart state
+    const cart = useSelector(state => state.cart.items); // Move useSelector to the top level
+
+    // Synchronize addedToCart with the cart state
+    useEffect(() => {
+        const updatedAddedToCart = {};
+        cart.forEach(item => {
+            updatedAddedToCart[item.name] = item.quantity > 0; // Mark as true if quantity > 0
+        });
+        setAddedToCart(updatedAddedToCart);
+    }, [cart]); // Run this effect whenever the cart state changes
+
     const handleHomeClick = (e) => {
         e.preventDefault();
         onHomeClick();
@@ -242,6 +260,7 @@ function ProductList({ onHomeClick }) {
         e.preventDefault();
         setShowCart(true); // Set showCart to true when cart icon is clicked
     };
+
     const handlePlantsClick = (e) => {
         e.preventDefault();
         setShowPlants(true); // Set showAboutUs to true when "About Us" link is clicked
@@ -252,6 +271,22 @@ function ProductList({ onHomeClick }) {
         e.preventDefault();
         setShowCart(false);
     };
+
+    const handleAddToCart = (plant) => {
+        setAddedToCart((prevState) => ({
+            ...prevState,
+            [plant.name]: true,
+        }));
+        // Dispatch the addItem action with the correct structure
+        dispatch(addItem({
+            name: plant.name,
+            image: plant.image,
+            cost: plant.cost,
+            quantity: 1, // Add initial quantity
+        }));
+        console.log(`${plant.name} added to cart`);
+    };
+
     return (
         <div>
             <div className="navbar" style={styleObj}>
@@ -265,7 +300,6 @@ function ProductList({ onHomeClick }) {
                             </div>
                         </a>
                     </div>
-
                 </div>
                 <div style={styleObjUl}>
                     <div> <a href="#" onClick={(e) => handlePlantsClick(e)} style={styleA}>Plants</a></div>
@@ -274,8 +308,27 @@ function ProductList({ onHomeClick }) {
             </div>
             {!showCart ? (
                 <div className="product-grid">
-
-
+                    {plantsArray.map((category) => (
+                        <div key={category.category}>
+                            <h2>{category.category}</h2>
+                            <div className="plants">
+                                {category.plants.map((plant) => (
+                                    <div key={plant.name} className="plant-card">
+                                        <img src={plant.image} alt={plant.name} />
+                                        <h3>{plant.name}</h3>
+                                        <p>{plant.description}</p>
+                                        <p>{plant.cost}</p>
+                                        <button
+                                            onClick={() => handleAddToCart(plant)}
+                                            disabled={addedToCart[plant.name]}
+                                        >
+                                            {addedToCart[plant.name] ? "Added to Cart" : "Add to Cart"}
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    ))}
                 </div>
             ) : (
                 <CartItem onContinueShopping={handleContinueShopping} />
@@ -285,3 +338,4 @@ function ProductList({ onHomeClick }) {
 }
 
 export default ProductList;
+

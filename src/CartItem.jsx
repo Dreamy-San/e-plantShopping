@@ -1,36 +1,55 @@
 import React from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux'; // Import useDispatch and useSelector from react-redux
 import { removeItem, updateQuantity } from './CartSlice';
 import './CartItem.css';
 
-const CartItem = ({ onContinueShopping }) => {
+function CartItem({ onContinueShopping }) {
   const cart = useSelector(state => state.cart.items);
   const dispatch = useDispatch();
 
   // Calculate total amount for all products in the cart
-  const calculateTotalAmount = () => {
- 
-  };
+  function calculateTotalAmount() {
+    return cart.reduce((total, item) => {
+      const itemCost = parseFloat(item.cost.substring(1)); // Extract numeric value from cost
+      return total + itemCost * item.quantity; // Add item's total cost to the total amount
+    }, 0).toFixed(2); // Keep two decimal places
+  }
 
-  const handleContinueShopping = (e) => {
-   
-  };
+  function handleContinueShopping(e) {
+    console.log("Continue Shopping button clicked"); // Debugging log
+    e.preventDefault();
+   // alert("Continue Shopping button clicked"); // Debugging alert
+    onContinueShopping(e); // Call the parent function to navigate back to the plant listing page
+  }
 
+  function handleIncrement(item) {
+    console.log("Increment button clicked"); // Debugging log
+    dispatch(updateQuantity({ name: item.name, quantity: item.quantity + 1 })); // Increment quantity
+    console.log("Increment button finished"); // Debugging log
+  }
 
+  function handleDecrement(item) {
+    console.log("Dispatching decrement for:", item);
+    if (item.quantity > 1) {
+      dispatch(updateQuantity({ name: item.name, quantity: item.quantity - 1 })); // Decrement quantity
+    } else {
+      dispatch(removeItem({ name: item.name })); // Remove item if quantity drops to 0
+    }
+  }
 
-  const handleIncrement = (item) => {
-  };
+  function handleRemove(item) {
+    console.log("Handle Remove:", item);
+    dispatch(removeItem({ name: item.name })); // Dispatch removeItem action to delete the item
+  }
 
-  const handleDecrement = (item) => {
-   
-  };
+  function calculateTotalCost(item) {
+    const itemCost = parseFloat(item.cost.substring(1)); // Extract numeric value from cost
+    return (itemCost * item.quantity).toFixed(2); // Multiply by quantity and keep two decimal places
+  }
 
-  const handleRemove = (item) => {
-  };
-
-  // Calculate total cost based on quantity for an item
-  const calculateTotalCost = (item) => {
-  };
+  function handleCheckoutShopping(e) {
+    alert('Functionality to be added for future reference'); // Placeholder for checkout functionality
+  }
 
   return (
     <div className="cart-container">
@@ -57,12 +76,10 @@ const CartItem = ({ onContinueShopping }) => {
       <div className="continue_shopping_btn">
         <button className="get-started-button" onClick={(e) => handleContinueShopping(e)}>Continue Shopping</button>
         <br />
-        <button className="get-started-button1">Checkout</button>
+        <button className="get-started-button1" onClick={() => handleCheckoutShopping(e)}>Checkout</button>
       </div>
     </div>
   );
-};
+}
 
 export default CartItem;
-
-
